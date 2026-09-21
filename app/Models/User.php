@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,50 +13,34 @@ use App\Models\Company\Company;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasRoles, HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'uuid',
-        'name',
-        'first_name',
-        'last_name',
-        'email',
-        'avatar',
-        'phone',
-        'password',
-        'role_id',
+        'name', 'first_name', 'last_name',
+        'email', 'avatar', 'phone',
+        'password', 'role_id',
         'email_verified_at',
-        'magic_link_token',
-        'magic_link_sent_at',
-        'magic_link_expires_at',
-        'country_code',
-        'bio',
-        'is_active',
-        'last_login_at',
+        'magic_link_token', 'magic_link_sent_at', 'magic_link_expires_at',
+        'country_code', 'bio', 'is_active', 'last_login_at',
+
+        // new
+        'current_company_id', 'current_mode',
+        'two_factor_secret', 'two_factor_recovery_codes',
+        'two_factor_confirmed_at', 'two_factor_method',
+        'password_changed_at', 'failed_login_attempts', 'locked_until',
+        'last_login_ip', 'is_platform_admin', 'terms_accepted_at',
+        'locale', 'timezone',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
         'magic_link_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -65,95 +48,55 @@ class User extends Authenticatable
             'magic_link_sent_at' => 'datetime',
             'magic_link_expires_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
+            'password_changed_at' => 'datetime',
+            'locked_until' => 'datetime',
+            'terms_accepted_at' => 'datetime',
             'is_active' => 'boolean',
+            'is_platform_admin' => 'boolean',
+            'failed_login_attempts' => 'integer',
             'password' => 'hashed',
         ];
     }
 
-    /**
-     * Boot function to generate UUID on creating.
-     */
-    protected static function boot()
+    protected static function booted(): void
     {
-        parent::boot();
-        
-        static::creating(function ($model) {
-            if (empty($model->uuid)) {
-                $model->uuid = (string) Str::uuid();
-            }
+        static::creating(function ($user) {
+            $user->uuid ??= (string) Str::uuid();
         });
     }
 
-    /**
-     * Get the user's full name.
-     */
+    /* ---------- Existing helpers (unchanged) ---------- */
+
     public function getFullNameAttribute(): string
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
     }
 
-    /**
-     * Set the user's name from first and last name.
-     */
     public function setNameAttribute($value): void
     {
         $parts = explode(' ', $value, 2);
-        $this->attributes['first_name'] = $parts[0];
+        $this->attributes['first_name'] = $parts[0] ?? '';
         $this->attributes['last_name'] = $parts[1] ?? '';
         $this->attributes['name'] = $value;
     }
 
-    /**
-     * Calculate profile completion percentage.
-     */
     public function getProfileCompletionAttribute(): int
     {
-        $fields = [
-            'first_name',
-            'last_name',
-            'email',
-            'phone',
-            'country_code'
-        ];
-        
+        $fields = ['first_name', 'last_name', 'email', 'phone', 'country_code'];
         $completed = 0;
-        $total = count($fields) + 1; // +1 for bio field
-        
-        foreach ($fields as $field) {
-            if (!empty($this->$field)) {
-                $completed++;
-            }
-        }
-        
-        // Check bio field
-        if (!empty($this->bio)) {
-            $completed++;
-        }
-        
-        return round(($completed / $total) * 100);
+        foreach ($fields as $f) if (!empty($this->$f)) $completed++;
+        if (!empty($this->bio)) $completed++;
+        return round(($completed / (count($fields) + 1)) * 100);
     }
 
-    /**
-     * Scope for active users only.
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
+    public function scopeActive($query) { return $query->where('is_active', true); }
 
-    /**
-     * Check if magic link is valid.
-     */
     public function hasValidMagicLink(): bool
     {
-        return $this->magic_link_token && 
-               $this->magic_link_expires_at && 
-               now()->lt($this->magic_link_expires_at);
+        return $this->magic_link_token && $this->magic_link_expires_at && now()->lt($this->magic_link_expires_at);
     }
 
-    /**
-     * Generate a magic link token for the user.
-     */
     public function generateMagicLinkToken(): string
     {
         $this->forceFill([
@@ -161,23 +104,16 @@ class User extends Authenticatable
             'magic_link_sent_at' => now(),
             'magic_link_expires_at' => now()->addMinutes(15),
         ])->save();
-
         return $this->magic_link_token;
     }
 
-    /**
-     * Verify magic link token.
-     */
     public function verifyMagicLinkToken(string $token): bool
     {
-        return $this->magic_link_token === $token && 
-               $this->magic_link_expires_at && 
-               now()->lt($this->magic_link_expires_at);
+        return $this->magic_link_token === $token
+            && $this->magic_link_expires_at
+            && now()->lt($this->magic_link_expires_at);
     }
 
-    /**
-     * Clear magic link token.
-     */
     public function clearMagicLinkToken(): void
     {
         $this->forceFill([
@@ -187,24 +123,26 @@ class User extends Authenticatable
         ])->save();
     }
 
-    /**
-     * Update last login timestamp.
-     */
     public function updateLastLogin(): void
     {
         $this->forceFill([
             'last_login_at' => now(),
+            'last_login_ip' => request()->ip(),
         ])->save();
     }
 
-    /**
-     * Get avatar URL.
-     */
     public function getAvatarUrlAttribute(): string
     {
-        return $this->avatar 
+        return $this->avatar
             ? (str_starts_with($this->avatar, 'http') ? $this->avatar : asset($this->avatar))
             : asset('assets/media/avatars/300-1.jpg');
+    }
+
+    /* ---------- New relations ---------- */
+
+    public function currentCompany()
+    {
+        return $this->belongsTo(Company::class, 'current_company_id');
     }
 
     public function companies()
@@ -219,9 +157,46 @@ class User extends Authenticatable
         return $this->hasMany(Company::class, 'owner_id');
     }
 
-    /** Convenience: the company this user is currently operating as. */
-    public function currentCompany(): ?Company
+    public function devices()
     {
+        return $this->hasMany(UserDevice::class);
+    }
+
+    /* ---------- New helpers ---------- */
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return !is_null($this->two_factor_confirmed_at);
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->locked_until && now()->lt($this->locked_until);
+    }
+
+    public function isPlatformStaff(): bool
+    {
+        return (bool) $this->is_platform_admin;
+    }
+
+    /**
+     * The company the user is *actually* operating as right now.
+     * Falls back to first active membership if current_company_id is null.
+     */
+    public function activeCompany(): ?Company
+    {
+        if ($this->current_company_id) {
+            $company = $this->currentCompany;
+            if ($company && $this->belongsToCompany($company->id)) {
+                return $company;
+            }
+        }
+
         return $this->companies()->wherePivot('status', 'active')->first();
+    }
+
+    public function belongsToCompany(int $companyId): bool
+    {
+        return $this->companies()->where('companies.id', $companyId)->exists();
     }
 }

@@ -248,6 +248,162 @@
         </div>
     </div>
 
+    {{-- View User Modal --}}
+    <div class="modal fade" id="kt_modal_view_user" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered mw-900px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="fw-bold">User Details</h2>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body scroll-y mx-5 my-7">
+
+                    {{-- Header --}}
+                    <div class="d-flex align-items-center mb-8">
+                        <div class="symbol symbol-80px symbol-circle me-5">
+                            <img id="view_user_avatar" src="" alt="" style="object-fit:cover;">
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <h3 class="fw-bold m-0" id="view_user_name">—</h3>
+                                <span id="view_user_platform_badge" class="badge badge-light-danger d-none">Platform Staff</span>
+                            </div>
+                            <div class="text-muted" id="view_user_email">—</div>
+                            <div class="text-muted fs-7" id="view_user_uuid">—</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="mb-2" id="view_user_status"></div>
+                            <div id="view_user_2fa_badge"></div>
+                        </div>
+                    </div>
+
+                    {{-- Tabs --}}
+                    <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6">
+                        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#view_tab_overview">Overview</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#view_tab_security">Security</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#view_tab_rbac">Roles & Permissions</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#view_tab_devices">Devices</a></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        {{-- Overview --}}
+                        <div class="tab-pane fade show active" id="view_tab_overview">
+                            <div class="row g-5">
+                                <div class="col-md-6">
+                                    <div class="border border-gray-300 border-dashed rounded p-4">
+                                        <div class="text-muted fs-7 text-uppercase fw-bold mb-2">Contact</div>
+                                        <div class="mb-2"><strong>Email:</strong> <span id="view_user_email_2">—</span></div>
+                                        <div class="mb-2"><strong>Phone:</strong> <span id="view_user_phone">—</span></div>
+                                        <div><strong>Country Code:</strong> <span id="view_user_cc">—</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="border border-gray-300 border-dashed rounded p-4">
+                                        <div class="text-muted fs-7 text-uppercase fw-bold mb-2">Activity</div>
+                                        <div class="mb-2"><strong>Created:</strong> <span id="view_user_created">—</span></div>
+                                        <div class="mb-2"><strong>Last Login:</strong> <span id="view_user_last_login">—</span></div>
+                                        <div><strong>Last IP:</strong> <span id="view_user_last_ip">—</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="border border-gray-300 border-dashed rounded p-4">
+                                        <div class="text-muted fs-7 text-uppercase fw-bold mb-2">Context</div>
+                                        <div class="mb-2"><strong>Company:</strong> <span id="view_user_company">—</span></div>
+                                        <div class="mb-2"><strong>Mode:</strong> <span id="view_user_mode">—</span></div>
+                                        <div><strong>Locale / TZ:</strong> <span id="view_user_locale">—</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="border border-gray-300 border-dashed rounded p-4">
+                                        <div class="text-muted fs-7 text-uppercase fw-bold mb-2">Terms</div>
+                                        <div><strong>Accepted:</strong> <span id="view_user_terms">—</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Security --}}
+                        <div class="tab-pane fade" id="view_tab_security">
+                            <div class="row g-5">
+                                <div class="col-md-6">
+                                    <div class="border border-gray-300 border-dashed rounded p-4">
+                                        <div class="text-muted fs-7 text-uppercase fw-bold mb-2">Two-Factor</div>
+                                        <div class="mb-2"><strong>Enabled:</strong> <span id="view_user_2fa_tab">—</span></div>
+                                        <div class="mb-2"><strong>Method:</strong> <span id="view_user_2fa_method">—</span></div>
+                                        <div><strong>Confirmed:</strong> <span id="view_user_2fa_confirmed">—</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="border border-gray-300 border-dashed rounded p-4">
+                                        <div class="text-muted fs-7 text-uppercase fw-bold mb-2">Login Security</div>
+                                        <div class="mb-2"><strong>Failed attempts:</strong> <span id="view_user_failed_attempts">—</span></div>
+                                        <div class="mb-2"><strong>Locked:</strong> <span id="view_user_locked">—</span></div>
+                                        <div><strong>Password changed:</strong> <span id="view_user_pw_changed">—</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 mt-5">
+                                <button type="button" class="btn btn-light-danger btn-sm" id="view_user_unlock_btn">
+                                    <i class="ki-duotone ki-lock-2 fs-4 me-1"><span class="path1"></span><span class="path2"></span></i>
+                                    Unlock account
+                                </button>
+                                <button type="button" class="btn btn-light-warning btn-sm" id="view_user_toggle_platform_btn">
+                                    <i class="ki-duotone ki-shield fs-4 me-1"><span class="path1"></span><span class="path2"></span></i>
+                                    Toggle platform staff
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- RBAC --}}
+                        <div class="tab-pane fade" id="view_tab_rbac">
+                            <div class="mb-5">
+                                <h4 class="fw-bold mb-3">Roles</h4>
+                                <div id="view_user_roles" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                            <div class="mb-5">
+                                <h4 class="fw-bold mb-3">Role-inherited Permissions</h4>
+                                <div id="view_user_role_perms" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-3">Direct Permissions</h4>
+                                <div id="view_user_direct_perms" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+
+                        {{-- Devices --}}
+                        <div class="tab-pane fade" id="view_tab_devices">
+                            <div id="view_user_devices_empty" class="text-center py-10 d-none">
+                                <i class="ki-duotone ki-information-5 fs-2tx text-muted mb-3 d-block">
+                                    <span class="path1"></span><span class="path2"></span><span class="path3"></span>
+                                </i>
+                                <p class="text-muted">No devices recorded.</p>
+                            </div>
+                            <div class="table-responsive" id="view_user_devices_container">
+                                <table class="table table-row-dashed align-middle fs-7">
+                                    <thead>
+                                        <tr class="text-muted fw-bold text-uppercase">
+                                            <th>Device</th>
+                                            <th>Platform / Browser</th>
+                                            <th>IP</th>
+                                            <th>Last active</th>
+                                            <th>Trusted</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="view_user_devices_body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Permissions Modal -->
     <div class="modal fade" id="kt_modal_user_permissions" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered mw-700px">
@@ -426,6 +582,9 @@
                     </button>
                     <button type="button" class="btn btn-sm btn-icon btn-light" onclick="editUser(${user.id})" title="Edit" style="width: 32px; height: 32px;">
                         <i class="ki-duotone ki-setting-3 fs-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="viewUser(${user.id})" title="View" style="width: 32px; height: 32px;">
+                        <i class="ki-duotone ki-eye fs-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
                     </button>
                     ${!user.roles.includes('super_admin') ? `
                         <button type="button" class="btn btn-sm btn-icon btn-light" onclick="deleteUser(${user.id}, '${escapeHtml(user.name)}')" title="Delete" style="width: 32px; height: 32px;">
@@ -720,10 +879,158 @@
     });
     
     function escapeHtml(text) {
-        if (!text) return '';
+        if (text === null || text === undefined) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
+
+
+    let currentViewUserId = null;
+
+    window.viewUser = function (id) {
+        currentViewUserId = id;
+
+        fetch(`/admin/users/${id}/detail`)
+            .then(res => res.json())
+            .then(resp => {
+                if (!resp.success) return window.showToast('error', resp.message);
+                const u = resp.data;
+
+                // Header
+                document.getElementById('view_user_avatar').src = u.avatar || '{{ asset("assets/media/avatars/blank.png") }}';
+                document.getElementById('view_user_name').textContent = u.name || '(no name)';
+                document.getElementById('view_user_email').textContent = u.email || '';
+                document.getElementById('view_user_uuid').textContent = u.uuid || '';
+                document.getElementById('view_user_platform_badge').classList.toggle('d-none', !u.is_platform_admin);
+
+                document.getElementById('view_user_status').innerHTML = u.is_active
+                    ? '<span class="badge badge-light-success">Active</span>'
+                    : '<span class="badge badge-light-danger">Inactive</span>';
+
+                document.getElementById('view_user_2fa_badge').innerHTML = u.has_two_factor
+                    ? '<span class="badge badge-light-primary">2FA on</span>'
+                    : '<span class="badge badge-light-secondary">2FA off</span>';
+
+                // Overview
+                document.getElementById('view_user_email_2').textContent = u.email || '—';
+                document.getElementById('view_user_phone').textContent = u.phone || '—';
+                document.getElementById('view_user_cc').textContent = u.country_code || '—';
+                document.getElementById('view_user_created').textContent = u.created_at || '—';
+                document.getElementById('view_user_last_login').textContent = u.last_login_at || 'Never';
+                document.getElementById('view_user_last_ip').textContent = u.last_login_ip || '—';
+                document.getElementById('view_user_company').textContent = u.current_company
+                    ? `${u.current_company.name} (${u.current_company.public_id})` : '—';
+                document.getElementById('view_user_mode').innerHTML = u.current_mode
+                    ? `<span class="badge badge-light-${u.current_mode === 'live' ? 'danger' : 'info'}">${u.current_mode}</span>`
+                    : '—';
+                document.getElementById('view_user_locale').textContent =
+                    [u.locale, u.timezone].filter(Boolean).join(' / ') || '—';
+                document.getElementById('view_user_terms').textContent = u.terms_accepted_at || 'Not accepted';
+
+                // Security
+                document.getElementById('view_user_2fa_tab').textContent = u.has_two_factor ? 'Yes' : 'No';
+                document.getElementById('view_user_2fa_method').textContent = u.two_factor_method || '—';
+                document.getElementById('view_user_2fa_confirmed').textContent = u.two_factor_confirmed_at || '—';
+                document.getElementById('view_user_failed_attempts').textContent = u.failed_login_attempts ?? 0;
+                document.getElementById('view_user_locked').innerHTML = u.is_locked
+                    ? `<span class="badge badge-light-danger">Until ${u.locked_until}</span>`
+                    : '<span class="badge badge-light-success">No</span>';
+                document.getElementById('view_user_pw_changed').textContent = u.password_changed_at || '—';
+
+                // RBAC
+                document.getElementById('view_user_roles').innerHTML = u.roles.length
+                    ? u.roles.map(r => `<span class="badge badge-light-primary">${formatRoleName(r)}</span>`).join('')
+                    : '<span class="text-muted">No roles</span>';
+
+                document.getElementById('view_user_role_perms').innerHTML = u.role_permissions.length
+                    ? u.role_permissions.map(p => `<span class="badge badge-light-info fs-8">${formatRoleName(p)}</span>`).join('')
+                    : '<span class="text-muted">No inherited permissions</span>';
+
+                document.getElementById('view_user_direct_perms').innerHTML = u.direct_permissions.length
+                    ? u.direct_permissions.map(p => `<span class="badge badge-light-success fs-8">${formatRoleName(p)}</span>`).join('')
+                    : '<span class="text-muted">No direct permissions</span>';
+
+                // Devices
+                const devicesEmpty = document.getElementById('view_user_devices_empty');
+                const devicesContainer = document.getElementById('view_user_devices_container');
+                const devicesBody = document.getElementById('view_user_devices_body');
+                devicesBody.innerHTML = '';
+
+                if (!u.devices.length) {
+                    devicesEmpty.classList.remove('d-none');
+                    devicesContainer.classList.add('d-none');
+                } else {
+                    devicesEmpty.classList.add('d-none');
+                    devicesContainer.classList.remove('d-none');
+                    u.devices.forEach(d => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${escapeHtml(d.device_name ?? '—')}</td>
+                            <td>${escapeHtml([d.platform, d.browser].filter(Boolean).join(' · ') || '—')}</td>
+                            <td>${escapeHtml(d.ip_address ?? '—')}</td>
+                            <td>${escapeHtml(d.last_active_at ?? '—')}</td>
+                            <td>${d.is_trusted ? '<span class="badge badge-light-success">Trusted</span>' : '<span class="badge badge-light-secondary">—</span>'}</td>
+                        `;
+                        devicesBody.appendChild(tr);
+                    });
+                }
+
+                // Wire the action buttons
+                const unlockBtn = document.getElementById('view_user_unlock_btn');
+                unlockBtn.disabled = !u.is_locked;
+                unlockBtn.onclick = () => unlockUser(u.id);
+
+                const platformBtn = document.getElementById('view_user_toggle_platform_btn');
+                platformBtn.disabled = u.roles.includes('super_admin');
+                platformBtn.onclick = () => togglePlatformAdmin(u.id);
+
+                new bootstrap.Modal(document.getElementById('kt_modal_view_user')).show();
+            })
+            .catch(err => {
+                console.error(err);
+                window.showToast('error', 'Failed to load user details');
+            });
+    };
+
+    window.unlockUser = function (id) {
+        if (!confirm('Clear lockout and reset failed attempts?')) return;
+
+        fetch(`/admin/users/${id}/unlock`, {
+            method: 'PATCH',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.showToast('success', data.message);
+                viewUser(id); // refresh modal content
+                loadUsers();
+            } else {
+                window.showToast('error', data.message);
+            }
+        })
+        .catch(() => window.showToast('error', 'Failed to unlock user'));
+    };
+
+    window.togglePlatformAdmin = function (id) {
+        if (!confirm('Toggle platform staff flag for this user?')) return;
+
+        fetch(`/admin/users/${id}/toggle-platform-admin`, {
+            method: 'PATCH',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.showToast('success', data.message);
+                viewUser(id); // refresh modal content
+                loadUsers();
+            } else {
+                window.showToast('error', data.message);
+            }
+        })
+        .catch(() => window.showToast('error', 'Failed to update flag'));
+    };
 </script>
 @endpush

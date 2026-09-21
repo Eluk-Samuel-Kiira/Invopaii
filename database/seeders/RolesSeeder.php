@@ -35,6 +35,10 @@ class RolesSeeder extends Seeder
                 'run verification checks',
                 'view risk assessments', 'manage risk rules',
                 'manage blocklist', 'manage velocity limits',
+                'view company compliance',
+                'view company documents', 'manage company documents',
+                'view company representatives',
+                'run verification checks',
 
                 // Disputes
                 'view disputes', 'manage disputes',
@@ -57,7 +61,7 @@ class RolesSeeder extends Seeder
             ],
 
             'compliance_officer' => [
-                'view companies',
+                'view companies', 'view company compliance', 'view company representatives',
                 'approve companies', 'reject companies', 'suspend companies',
                 'view company documents', 'manage company documents',
                 'run verification checks',
@@ -78,6 +82,8 @@ class RolesSeeder extends Seeder
                 // Onboarding
                 'submit company verification',
                 'view company bank accounts', 'manage company bank accounts',
+                'view company documents', 'manage company documents',
+                'view company representatives', 'manage company representatives',
 
                 // Developers
                 'view api keys', 'create api keys', 'revoke api keys',
