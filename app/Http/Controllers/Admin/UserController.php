@@ -50,22 +50,25 @@ class UserController extends Controller
         // Format the data
         $data = [
             'current_page' => $users->currentPage(),
-            'data' => collect($users->items())->map(function($user) {
+            'data' => collect($users->items())->map(function ($user) {
                 return [
                     'id' => $user->id,
                     'uuid' => $user->uuid,
-                    'name' => $user->name ?? $user->first_name . ' ' . $user->last_name,
+                    'name' => $user->name ?? trim($user->first_name . ' ' . $user->last_name),
                     'first_name' => $user->first_name,
                     'last_name' => $user->last_name,
                     'email' => $user->email,
                     'phone' => $user->phone,
                     'country_code' => $user->country_code,
-                    'avatar' => $user->avatar,
+                    'avatar' => $user->avatar_url,
                     'roles' => $user->roles->pluck('name')->toArray(),
                     'permissions' => $user->getDirectPermissions()->pluck('name')->toArray(),
-                    'is_active' => $user->is_active,
-                    'email_verified_at' => $user->email_verified_at,
-                    'last_login_at' => $user->last_login_at ? $user->last_login_at->format('M d, Y H:i:s') : 'Never',
+                    'is_active' => (bool) $user->is_active,
+                    'is_platform_admin' => (bool) $user->is_platform_admin,
+                    'has_two_factor' => !is_null($user->two_factor_confirmed_at),
+                    'is_locked' => $user->locked_until && now()->lt($user->locked_until),
+                    'email_verified_at' => $user->email_verified_at?->format('M d, Y H:i'),
+                    'last_login_at' => $user->last_login_at ? $user->last_login_at->format('M d, Y H:i') : 'Never',
                     'created_at' => $user->created_at->format('M d, Y'),
                 ];
             })->toArray(),
@@ -81,6 +84,127 @@ class UserController extends Controller
         ];
         
         return response()->json($data);
+    }
+
+    /**
+     * Full detail payload for the View modal.
+     */
+    public function getUserDetail($id)
+    {
+        try {
+            $user = User::with([
+                'roles:id,name',
+                'currentCompany:id,name,public_id',
+                'devices' => fn ($q) => $q->orderByDesc('last_active_at')->limit(10),
+            ])->findOrFail($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $user->id,
+                    'uuid' => $user->uuid,
+                    'name' => $user->name ?? trim($user->first_name . ' ' . $user->last_name),
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'country_code' => $user->country_code,
+                    'avatar' => $user->avatar_url,
+                    'bio' => $user->bio,
+                    'is_active' => (bool) $user->is_active,
+                    'is_platform_admin' => (bool) $user->is_platform_admin,
+                    'email_verified_at' => $user->email_verified_at?->format('M d, Y H:i'),
+                    'last_login_at' => $user->last_login_at?->format('M d, Y H:i'),
+                    'last_login_ip' => $user->last_login_ip,
+                    'created_at' => $user->created_at?->format('M d, Y H:i'),
+                    'updated_at' => $user->updated_at?->format('M d, Y H:i'),
+
+                    'has_two_factor' => !is_null($user->two_factor_confirmed_at),
+                    'two_factor_method' => $user->two_factor_method,
+                    'two_factor_confirmed_at' => $user->two_factor_confirmed_at?->format('M d, Y H:i'),
+                    'password_changed_at' => $user->password_changed_at?->format('M d, Y H:i'),
+                    'failed_login_attempts' => (int) $user->failed_login_attempts,
+                    'is_locked' => $user->locked_until && now()->lt($user->locked_until),
+                    'locked_until' => $user->locked_until?->format('M d, Y H:i'),
+                    'terms_accepted_at' => $user->terms_accepted_at?->format('M d, Y H:i'),
+
+                    'locale' => $user->locale,
+                    'timezone' => $user->timezone,
+
+                    'current_company' => $user->currentCompany ? [
+                        'id' => $user->currentCompany->id,
+                        'name' => $user->currentCompany->name,
+                        'public_id' => $user->currentCompany->public_id,
+                    ] : null,
+                    'current_mode' => $user->current_mode,
+
+                    'roles' => $user->roles->pluck('name')->toArray(),
+                    'direct_permissions' => $user->getDirectPermissions()->pluck('name')->toArray(),
+                    'role_permissions' => $user->getPermissionsViaRoles()->pluck('name')->toArray(),
+
+                    'devices' => $user->devices->map(fn ($d) => [
+                        'id' => $d->id,
+                        'device_name' => $d->device_name,
+                        'platform' => $d->platform,
+                        'browser' => $d->browser,
+                        'ip_address' => $d->ip_address,
+                        'location' => $d->location,
+                        'is_trusted' => (bool) $d->is_trusted,
+                        'last_active_at' => $d->last_active_at?->format('M d, Y H:i'),
+                    ])->toArray(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+    }
+
+    /**
+     * Toggle the platform staff flag.
+     */
+    public function togglePlatformAdmin($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            if ($user->hasRole('super_admin')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot modify super_admin platform flag.',
+                ], 403);
+            }
+
+            $user->is_platform_admin = !$user->is_platform_admin;
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => $user->is_platform_admin
+                    ? 'User marked as platform staff.'
+                    : 'Platform staff flag removed.',
+                'is_platform_admin' => $user->is_platform_admin,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to update flag'], 500);
+        }
+    }
+
+    /**
+     * Clear lockout state.
+     */
+    public function unlockUser($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->forceFill([
+                'locked_until' => null,
+                'failed_login_attempts' => 0,
+            ])->save();
+
+            return response()->json(['success' => true, 'message' => 'User unlocked successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to unlock user'], 500);
+        }
     }
 
     /**

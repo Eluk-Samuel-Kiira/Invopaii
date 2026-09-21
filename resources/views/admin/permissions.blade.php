@@ -21,37 +21,44 @@
     <!--begin::Card-->
     <div class="card card-flush">
         <!--begin::Card header-->
-        <div class="card-header mt-6">
+        <div class="card-header mt-6 flex-wrap gap-3">
             <!--begin::Card title-->
-            <div class="card-title">
-                <!--begin::Search-->
-                <div class="d-flex align-items-center position-relative my-1 me-5">
-                    <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
-                        <span class="path1"></span>
-                        <span class="path2"></span>
-                    </i>
-                    <input type="text" id="searchInput" class="form-control form-control-solid w-250px ps-13" 
-                           placeholder="Search Permissions" value="{{ request('search') }}" />
+            <div class="card-title w-100" style="min-width:0;">
+                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 gap-sm-3 my-1 w-100">
+                    <!--begin::Search-->
+                    <div class="position-relative w-100" style="max-width:280px;">
+                        <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5 top-50 translate-middle-y">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        <input type="text" id="searchInput"
+                            class="form-control form-control-solid ps-13 w-100"
+                            placeholder="Search Permissions"
+                            value="{{ request('search') }}" />
+                    </div>
+                    <!--end::Search-->
                 </div>
-                <!--end::Search-->
             </div>
             <!--end::Card title-->
+
             <!--begin::Card toolbar-->
-            <div class="card-toolbar">
-                <!--begin::Button-->
-                <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_permission">
+            <div class="card-toolbar m-0">
+                <button type="button"
+                        class="btn btn-light-primary w-100 w-sm-auto"
+                        data-bs-toggle="modal"
+                        data-bs-target="#kt_modal_add_permission">
                     <i class="ki-duotone ki-plus-square fs-3">
                         <span class="path1"></span>
                         <span class="path2"></span>
                         <span class="path3"></span>
-                    </i>Add Permission
+                    </i>
+                    <span class="ms-1">Add Permission</span>
                 </button>
-                <!--end::Button-->
             </div>
             <!--end::Card toolbar-->
         </div>
         <!--end::Card header-->
-        
+
         <!--begin::Card body-->
         <div class="card-body pt-0">
             <!-- Loading Spinner -->
@@ -61,15 +68,15 @@
                 </div>
                 <p class="mt-3 text-muted">Loading permissions...</p>
             </div>
-            
+
             <!--begin::Table-->
-            <div id="tableContainer">
+            <div id="tableContainer" class="table-responsive">
                 <table class="table align-middle table-row-dashed fs-6 gy-5 mb-0" id="permissionsTable">
                     <thead>
                         <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
                             <th class="min-w-125px">Name</th>
-                            <th class="min-w-250px">Assigned to</th>
-                            <th class="min-w-125px">Created Date</th>
+                            <th class="min-w-250px d-none d-md-table-cell">Assigned to</th>
+                            <th class="min-w-125px d-none d-lg-table-cell">Created Date</th>
                             <th class="text-end min-w-100px">Actions</th>
                         </tr>
                     </thead>
@@ -79,15 +86,16 @@
                 </table>
             </div>
             <!--end::Table-->
-            
+
             <!-- Pagination -->
-            <div id="paginationContainer" class="d-flex justify-content-between align-items-center mt-5 d-none">
-                <div id="paginationInfo" class="text-muted"></div>
+            <div id="paginationContainer"
+                class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-5 d-none">
+                <div id="paginationInfo" class="text-muted fs-7 text-center text-sm-start"></div>
                 <nav>
-                    <ul class="pagination m-0" id="pagination"></ul>
+                    <ul class="pagination m-0 justify-content-center justify-content-sm-end" id="pagination"></ul>
                 </nav>
             </div>
-            
+
             <!-- No Data Message -->
             <div id="noDataMessage" class="text-center py-10 d-none">
                 <i class="ki-duotone ki-information-5 fs-2tx text-muted mb-3 d-block">

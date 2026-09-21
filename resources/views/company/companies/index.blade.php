@@ -15,16 +15,20 @@
 
 @section('content')
     <div class="card card-flush">
-        <div class="card-header mt-6">
-            <div class="card-title">
-                <div class="d-flex align-items-center position-relative my-1 me-5">
-                    <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
-                        <span class="path1"></span><span class="path2"></span>
-                    </i>
-                    <input type="text" id="searchInput" class="form-control form-control-solid w-250px ps-13" placeholder="Search companies" />
-                </div>
-                <div class="d-flex align-items-center my-1 me-3">
-                    <select id="statusFilter" class="form-select form-select-solid w-150px">
+        <div class="card-header mt-6 flex-wrap gap-3">
+            <div class="card-title w-100">
+                <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2 gap-md-3 my-1 w-100">
+
+                    {{-- Search --}}
+                    <div class="position-relative w-100" style="max-width:280px;">
+                        <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5 top-50 translate-middle-y">
+                            <span class="path1"></span><span class="path2"></span>
+                        </i>
+                        <input type="text" id="searchInput" class="form-control form-control-solid ps-13 w-100" placeholder="Search companies" />
+                    </div>
+
+                    {{-- Status --}}
+                    <select id="statusFilter" class="form-select form-select-solid w-100" style="max-width:200px;">
                         <option value="">All statuses</option>
                         <option value="pending">Pending</option>
                         <option value="in_review">In Review</option>
@@ -34,25 +38,25 @@
                         <option value="rejected">Rejected</option>
                         <option value="closed">Closed</option>
                     </select>
-                </div>
-                <div class="d-flex align-items-center my-1">
-                    <select id="kybFilter" class="form-select form-select-solid w-150px">
+
+                    {{-- KYB --}}
+                    <select id="kybFilter" class="form-select form-select-solid w-100" style="max-width:200px;">
                         <option value="">All KYB</option>
                         <option value="unverified">Unverified</option>
                         <option value="pending">Pending</option>
                         <option value="verified">Verified</option>
                         <option value="rejected">Rejected</option>
                     </select>
+
+                    <div class="card-toolbar m-0">
+                        <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#kt_modal_add_company">
+                            <i class="ki-duotone ki-plus-square fs-2">
+                                <span class="path1"></span><span class="path2"></span><span class="path3"></span>
+                            </i> Add Company
+                        </button>
+                    </div>
+
                 </div>
-            </div>
-            <div class="card-toolbar">
-                @can('view companies')
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_company">
-                        <i class="ki-duotone ki-plus-square fs-2">
-                            <span class="path1"></span><span class="path2"></span><span class="path3"></span>
-                        </i> Add Company
-                    </button>
-                @endcan
             </div>
         </div>
 
@@ -220,9 +224,26 @@
             </div>
         </div>
     </div>
+
+    
+    {{-- Compliance modal will be reused from companies index --}}
+    @include('company.companies._compliance_modals')
+    @include('company.companies._bank_accounts_modals')
+    @include('company.companies._api_keys_modals')
+    @include('company.companies.webhooks._webhooks_modals')
+    @include('company.companies.customers._customers_modals')
+    @include('company.companies.catalog._catalog_modals')
+    @include('company.companies.invoices._invoices_modals')
 @endsection
 
 @push('scripts')
+@include('company.companies._bank_accounts_script')
+@include('company.companies._api_keys_script')
+@include('company.companies.webhooks._webhooks_script')
+@include('company.companies.customers._customers_script')
+@include('company.companies.catalog._catalog_script')
+@include('company.companies.invoices._invoices_script')
+
 <script>
     let currentPage = 1;
     let currentSearch = '';
@@ -353,26 +374,41 @@
 
             row.insertCell(7).innerHTML = `<span class="text-muted">${escapeHtml(c.created_at)}</span>`;
 
-            row.insertCell(8).innerHTML = `
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="editCompany(${c.id})" title="Edit" style="width:32px;height:32px;">
-                        <i class="ki-duotone ki-setting-3 fs-3">
-                            <span class="path1"></span><span class="path2"></span><span class="path3"></span>
-                            <span class="path4"></span><span class="path5"></span>
-                        </i>
+            const actionCell = row.insertCell(8);
+            actionCell.className = 'text-end';
+            actionCell.style.minWidth = '160px';
+
+            actionCell.innerHTML = `
+                <div class="d-flex flex-wrap justify-content-end gap-2" style="width:152px;">
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="openCompliance(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" title="Compliance" style="width:32px;height:32px;">
+                        <i class="ki-duotone ki-shield-tick fs-3 text-primary"><span class="path1"></span><span class="path2"></span></i>
                     </button>
-                    <button type="button" class="btn btn-sm btn-icon btn-light"
-                        onclick="changeStatus(${c.id}, '${c.status}', '${escapeHtml(c.name).replace(/'/g, "\\'")}')"
-                        title="Change Status" style="width:32px;height:32px;">
-                        <i class="ki-duotone ki-switch fs-3 text-info">
-                            <span class="path1"></span><span class="path2"></span>
-                        </i>
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="openBankAccounts(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" title="Bank Accounts" style="width:32px;height:32px;">
+                        <i class="ki-duotone ki-bank fs-3 text-success"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="openWebhooks(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" title="Webhooks" style="width:32px;height:32px;">
+                        <i class="ki-duotone ki-abstract-39 fs-3 text-warning"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="openApiKeys(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" title="Developers" style="width:32px;height:32px;">
+                        <i class="ki-duotone ki-code fs-3 text-info"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="openCustomers(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" title="Customers" style="width:32px;height:32px;">
+                        <i class="ki-duotone ki-profile-circle fs-3 text-primary"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="openCatalog(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" title="Catalog" style="width:32px;height:32px;">
+                        <i class="ki-duotone ki-package fs-3 text-info"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="openInvoices(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" title="Invoices" style="width:32px;height:32px;">
+                        <i class="ki-duotone ki-document fs-3 text-warning"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="editCompany(${c.id})" title="Edit" style="width:32px;height:32px;">
+                        <i class="ki-duotone ki-setting-3 fs-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-icon btn-light" onclick="changeStatus(${c.id}, '${c.status}', '${escapeHtml(c.name).replace(/'/g, "\\'")}')" title="Change Status" style="width:32px;height:32px;">
+                        <i class="ki-duotone ki-switch fs-3 text-info"><span class="path1"></span><span class="path2"></span></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-icon btn-light" onclick="deleteCompany(${c.id}, '${escapeHtml(c.name)}')" title="Delete" style="width:32px;height:32px;">
-                        <i class="ki-duotone ki-trash fs-3 text-danger">
-                            <span class="path1"></span><span class="path2"></span><span class="path3"></span>
-                            <span class="path4"></span><span class="path5"></span>
-                        </i>
+                        <i class="ki-duotone ki-trash fs-3 text-danger"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i>
                     </button>
                 </div>
             `;
@@ -660,5 +696,461 @@
         .catch(() => window.showToast('error', 'Failed to update company'))
         .finally(() => window.hideButtonSpinner(btn));
     });
+
+    /* ═══════════════════════════════════════════════════════
+   COMPLIANCE
+   ═══════════════════════════════════════════════════════ */
+
+let complianceCompanyId = null;
+let complianceRepresentatives = [];
+
+window.openCompliance = function (companyId, companyName) {
+    complianceCompanyId = companyId;
+    document.getElementById('compliance_company_name').textContent = companyName;
+
+    loadRepresentatives(companyId);
+    loadDocuments(companyId);
+    loadChecks(companyId);
+
+    new bootstrap.Modal(document.getElementById('kt_modal_compliance')).show();
+};
+
+/* ─── Representatives ─── */
+
+function loadRepresentatives(companyId) {
+    const loading = document.getElementById('comp_reps_loading');
+    const empty = document.getElementById('comp_reps_empty');
+    const container = document.getElementById('comp_reps_container');
+
+    loading.classList.remove('d-none');
+    empty.classList.add('d-none');
+    container.classList.add('d-none');
+
+    fetch(`/admin/companies/${companyId}/representatives`)
+        .then(res => res.json())
+        .then(data => {
+            loading.classList.add('d-none');
+            complianceRepresentatives = data.data || [];
+            document.getElementById('comp_reps_count').textContent = complianceRepresentatives.length;
+
+            if (!complianceRepresentatives.length) {
+                empty.classList.remove('d-none');
+                return;
+            }
+            container.classList.remove('d-none');
+            renderRepresentatives();
+        })
+        .catch(() => {
+            loading.classList.add('d-none');
+            window.showToast('error', 'Failed to load representatives');
+        });
+}
+
+function renderRepresentatives() {
+    const body = document.getElementById('comp_reps_body');
+    body.innerHTML = '';
+
+    complianceRepresentatives.forEach(r => {
+        const tr = document.createElement('tr');
+
+        const roles = r.roles.length
+            ? r.roles.map(x => `<span class="badge badge-light-primary fs-8 me-1">${escapeHtml(x)}</span>`).join('')
+            : '<span class="text-muted">—</span>';
+
+        tr.innerHTML = `
+            <td>
+                <div class="fw-bold">${escapeHtml(r.full_name)}</div>
+                ${r.job_title ? `<div class="text-muted fs-8">${escapeHtml(r.job_title)}</div>` : ''}
+            </td>
+            <td>
+                ${r.email ? `<div>${escapeHtml(r.email)}</div>` : ''}
+                ${r.phone ? `<div class="text-muted fs-8">${escapeHtml(r.phone)}</div>` : ''}
+                ${!r.email && !r.phone ? '<span class="text-muted">—</span>' : ''}
+            </td>
+            <td>${roles}</td>
+            <td>${r.ownership_percent ? `${parseFloat(r.ownership_percent).toFixed(2)}%` : '<span class="text-muted">—</span>'}</td>
+            <td>
+                ${r.id_document_type ? `
+                    <div class="fs-8 text-muted text-uppercase">${escapeHtml(r.id_document_type.replace('_',' '))}</div>
+                    <div class="font-monospace fs-8">${escapeHtml(r.id_document_masked ?? '—')}</div>
+                ` : '<span class="text-muted">—</span>'}
+            </td>
+            <td><span class="badge badge-light-${r.kyc_badge.tone}">${escapeHtml(r.kyc_badge.label)}</span></td>
+            <td class="text-end">
+                <button type="button" class="btn btn-sm btn-icon btn-light me-1" onclick="editRepresentative(${r.id})" title="Edit" style="width:28px;height:28px;">
+                    <i class="ki-duotone ki-setting-3 fs-4"><span class="path1"></span><span class="path2"></span></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-icon btn-light" onclick="deleteRepresentative(${r.id}, '${escapeHtml(r.full_name).replace(/'/g, "\\'")}')" title="Remove" style="width:28px;height:28px;">
+                    <i class="ki-duotone ki-trash fs-4 text-danger"><span class="path1"></span><span class="path2"></span></i>
+                </button>
+            </td>
+        `;
+        body.appendChild(tr);
+    });
+}
+
+window.openAddRepresentative = function () {
+    document.getElementById('rep_modal_title').textContent = 'Add Representative';
+    document.getElementById('rep_id').value = '';
+    document.getElementById('rep_company_id').value = complianceCompanyId;
+    document.getElementById('representativeForm').reset();
+    new bootstrap.Modal(document.getElementById('kt_modal_representative')).show();
+};
+
+window.editRepresentative = function (id) {
+    const r = complianceRepresentatives.find(x => x.id === id);
+    if (!r) return;
+
+    document.getElementById('rep_modal_title').textContent = 'Edit Representative';
+    document.getElementById('rep_id').value = r.id;
+    document.getElementById('rep_company_id').value = r.company_id;
+    document.getElementById('rep_first_name').value = r.first_name || '';
+    document.getElementById('rep_last_name').value = r.last_name || '';
+    document.getElementById('rep_email').value = r.email || '';
+    document.getElementById('rep_phone').value = r.phone || '';
+    document.getElementById('rep_date_of_birth').value = r.date_of_birth || '';
+    document.getElementById('rep_nationality').value = r.nationality || '';
+    document.getElementById('rep_job_title').value = r.job_title || '';
+    document.getElementById('rep_is_director').checked = !!r.is_director;
+    document.getElementById('rep_is_owner').checked = !!r.is_owner;
+    document.getElementById('rep_is_signatory').checked = !!r.is_signatory;
+    document.getElementById('rep_is_primary_contact').checked = !!r.is_primary_contact;
+    document.getElementById('rep_ownership_percent').value = r.ownership_percent || '';
+    document.getElementById('rep_id_document_type').value = r.id_document_type || '';
+    document.getElementById('rep_id_document_number').value = '';  // never sent back decrypted
+    document.getElementById('rep_id_document_expires_on').value = r.id_document_expires_on || '';
+
+    new bootstrap.Modal(document.getElementById('kt_modal_representative')).show();
+};
+
+window.deleteRepresentative = function (id, name) {
+    if (!confirm(`Remove "${name}"? This cannot be undone.`)) return;
+
+    fetch(`/admin/representatives/${id}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.showToast('success', data.message);
+            loadRepresentatives(complianceCompanyId);
+        } else {
+            window.showToast('error', data.message);
+        }
+    });
+};
+
+document.getElementById('representativeForm')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('repSaveBtn');
+    window.showButtonSpinner(btn);
+
+    const id = document.getElementById('rep_id').value;
+    const companyId = document.getElementById('rep_company_id').value;
+    const url = id
+        ? `/admin/representatives/${id}`
+        : `/admin/companies/${companyId}/representatives`;
+
+    const payload = {
+        first_name: document.getElementById('rep_first_name').value,
+        last_name: document.getElementById('rep_last_name').value,
+        email: document.getElementById('rep_email').value || null,
+        phone: document.getElementById('rep_phone').value || null,
+        date_of_birth: document.getElementById('rep_date_of_birth').value || null,
+        nationality: document.getElementById('rep_nationality').value || null,
+        job_title: document.getElementById('rep_job_title').value || null,
+        is_director: document.getElementById('rep_is_director').checked ? 1 : 0,
+        is_owner: document.getElementById('rep_is_owner').checked ? 1 : 0,
+        is_signatory: document.getElementById('rep_is_signatory').checked ? 1 : 0,
+        is_primary_contact: document.getElementById('rep_is_primary_contact').checked ? 1 : 0,
+        ownership_percent: document.getElementById('rep_ownership_percent').value || null,
+        id_document_type: document.getElementById('rep_id_document_type').value || null,
+        id_document_number: document.getElementById('rep_id_document_number').value || null,
+        id_document_expires_on: document.getElementById('rep_id_document_expires_on').value || null,
+    };
+
+    if (id) payload._method = 'PUT';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.showToast('success', data.message);
+            bootstrap.Modal.getInstance(document.getElementById('kt_modal_representative'))?.hide();
+            loadRepresentatives(companyId);
+        } else {
+            window.showToast('error', data.message || 'Save failed');
+        }
+    })
+    .catch(() => window.showToast('error', 'Save failed'))
+    .finally(() => window.hideButtonSpinner(btn));
+});
+
+/* ─── Documents ─── */
+
+function loadDocuments(companyId) {
+    const loading = document.getElementById('comp_docs_loading');
+    const empty = document.getElementById('comp_docs_empty');
+    const container = document.getElementById('comp_docs_container');
+
+    loading.classList.remove('d-none');
+    empty.classList.add('d-none');
+    container.classList.add('d-none');
+
+    fetch(`/admin/companies/${companyId}/documents`)
+        .then(res => res.json())
+        .then(data => {
+            loading.classList.add('d-none');
+            const docs = data.data || [];
+            document.getElementById('comp_docs_count').textContent = docs.length;
+
+            if (!docs.length) {
+                empty.classList.remove('d-none');
+                return;
+            }
+            container.classList.remove('d-none');
+
+            const body = document.getElementById('comp_docs_body');
+            body.innerHTML = '';
+            docs.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge badge-light-dark">${escapeHtml(d.type_label)}</span></td>
+                    <td>
+                        <div class="fw-semibold">${escapeHtml(d.original_filename ?? '—')}</div>
+                        <div class="text-muted fs-8">${escapeHtml(d.size_human ?? '')}</div>
+                    </td>
+                    <td>${d.representative ? escapeHtml(d.representative.full_name) : '<span class="text-muted">—</span>'}</td>
+                    <td><span class="badge badge-light-${d.status_badge.tone}">${escapeHtml(d.status_badge.label)}</span></td>
+                    <td class="text-muted">${escapeHtml(d.created_at ?? '')}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-icon btn-light me-1" onclick="previewDocument(${d.id})" title="View" style="width:28px;height:28px;">
+                            <i class="ki-duotone ki-eye fs-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                        </button>
+                        ${d.status === 'pending' ? `
+                            <button type="button" class="btn btn-sm btn-icon btn-light-success me-1" onclick="reviewDocument(${d.id}, 'approved')" title="Approve" style="width:28px;height:28px;">
+                                <i class="ki-duotone ki-check fs-4"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-icon btn-light-danger me-1" onclick="reviewDocument(${d.id}, 'rejected')" title="Reject" style="width:28px;height:28px;">
+                                <i class="ki-duotone ki-cross fs-4"></i>
+                            </button>
+                        ` : ''}
+                        <button type="button" class="btn btn-sm btn-icon btn-light" onclick="deleteDocument(${d.id})" title="Delete" style="width:28px;height:28px;">
+                            <i class="ki-duotone ki-trash fs-4 text-danger"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                        </button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        })
+        .catch(() => {
+            loading.classList.add('d-none');
+            window.showToast('error', 'Failed to load documents');
+        });
+}
+
+window.openUploadDocument = function () {
+    document.getElementById('doc_company_id').value = complianceCompanyId;
+
+    // Populate the representative selector
+    const sel = document.getElementById('doc_representative_id');
+    sel.innerHTML = '<option value="">— None —</option>' +
+        complianceRepresentatives.map(r => `<option value="${r.id}">${escapeHtml(r.full_name)}</option>`).join('');
+
+    document.getElementById('documentUploadForm').reset();
+    new bootstrap.Modal(document.getElementById('kt_modal_upload_document')).show();
+};
+
+document.getElementById('documentUploadForm')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('docUploadBtn');
+    window.showButtonSpinner(btn);
+
+    const companyId = document.getElementById('doc_company_id').value;
+    const fd = new FormData();
+    fd.append('type', document.getElementById('doc_type').value);
+    fd.append('company_representative_id', document.getElementById('doc_representative_id').value);
+    fd.append('file', document.getElementById('doc_file').files[0]);
+    if (document.getElementById('doc_expires_on').value) {
+        fd.append('expires_on', document.getElementById('doc_expires_on').value);
+    }
+
+    fetch(`/admin/companies/${companyId}/documents`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        body: fd
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.showToast('success', data.message);
+            bootstrap.Modal.getInstance(document.getElementById('kt_modal_upload_document'))?.hide();
+            loadDocuments(companyId);
+        } else {
+            window.showToast('error', data.message || 'Upload failed');
+        }
+    })
+    .catch(() => window.showToast('error', 'Upload failed'))
+    .finally(() => window.hideButtonSpinner(btn));
+});
+
+window.previewDocument = function (id) {
+    fetch(`/admin/documents/${id}/view`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) return window.showToast('error', data.message || 'File not found');
+
+            const url = data.url;
+            const isPdf = url.toLowerCase().includes('.pdf') || url.toLowerCase().includes('application%2Fpdf');
+
+            const frame = document.getElementById('doc_preview_frame');
+            const img = document.getElementById('doc_preview_image');
+
+            if (isPdf || url.includes('pdf')) {
+                frame.src = url;
+                frame.style.display = '';
+                img.style.display = 'none';
+            } else {
+                img.src = url;
+                img.style.display = '';
+                frame.style.display = 'none';
+                frame.src = '';
+            }
+
+            document.getElementById('doc_preview_download').href = url + '&download=1';
+            new bootstrap.Modal(document.getElementById('kt_modal_doc_preview')).show();
+        })
+        .catch(() => window.showToast('error', 'Failed to load document'));
+};
+
+window.reviewDocument = function (id, status) {
+    const notes = status === 'rejected' ? prompt('Rejection reason (optional):') : null;
+
+    fetch(`/admin/documents/${id}/review`, {
+        method: 'PATCH',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status, review_notes: notes })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.showToast('success', data.message);
+            loadDocuments(complianceCompanyId);
+        } else {
+            window.showToast('error', data.message);
+        }
+    });
+};
+
+window.deleteDocument = function (id) {
+    if (!confirm('Delete this document? This cannot be undone.')) return;
+    fetch(`/admin/documents/${id}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.showToast('success', data.message);
+            loadDocuments(complianceCompanyId);
+        } else {
+            window.showToast('error', data.message);
+        }
+    });
+};
+
+/* ─── Verification Checks ─── */
+
+function loadChecks(companyId) {
+    const loading = document.getElementById('comp_checks_loading');
+    const empty = document.getElementById('comp_checks_empty');
+    const container = document.getElementById('comp_checks_container');
+
+    loading.classList.remove('d-none');
+    empty.classList.add('d-none');
+    container.classList.add('d-none');
+
+    fetch(`/admin/companies/${companyId}/checks`)
+        .then(res => res.json())
+        .then(data => {
+            loading.classList.add('d-none');
+            const checks = data.data || [];
+            document.getElementById('comp_checks_count').textContent = checks.length;
+
+            if (!checks.length) {
+                empty.classList.remove('d-none');
+                return;
+            }
+            container.classList.remove('d-none');
+
+            const body = document.getElementById('comp_checks_body');
+            body.innerHTML = '';
+            checks.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${escapeHtml(c.type_label)}</td>
+                    <td>${escapeHtml(c.provider ?? '—')}</td>
+                    <td><span class="badge badge-light-${c.status_badge.tone}">${escapeHtml(c.status_badge.label)}</span></td>
+                    <td>${c.score ?? '—'}</td>
+                    <td class="text-muted">${escapeHtml(c.completed_at ?? c.created_at ?? '—')}</td>
+                    <td class="text-end">${c.failure_reason ? `<span title="${escapeHtml(c.failure_reason)}" class="text-danger fs-7">${escapeHtml(c.failure_reason.substring(0,30))}…</span>` : ''}</td>
+                `;
+                body.appendChild(tr);
+            });
+        })
+        .catch(() => {
+            loading.classList.add('d-none');
+            window.showToast('error', 'Failed to load checks');
+        });
+}
+
+window.openRunCheck = function () {
+    document.getElementById('check_company_id').value = complianceCompanyId;
+    new bootstrap.Modal(document.getElementById('kt_modal_run_check')).show();
+};
+
+document.getElementById('checkRunBtn')?.addEventListener('click', function () {
+    const btn = this;
+    window.showButtonSpinner(btn);
+
+    const companyId = document.getElementById('check_company_id').value;
+    const type = document.getElementById('check_type').value;
+
+    fetch(`/admin/companies/${companyId}/checks/run`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ type })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.showToast('success', data.message);
+            bootstrap.Modal.getInstance(document.getElementById('kt_modal_run_check'))?.hide();
+            loadChecks(companyId);
+        } else {
+            window.showToast('error', data.message);
+        }
+    })
+    .catch(() => window.showToast('error', 'Failed to queue check'))
+    .finally(() => window.hideButtonSpinner(btn));
+});
+
 </script>
 @endpush

@@ -26,6 +26,11 @@ class DatabaseSeeder extends Seeder
             RolesSeeder::class,         
             UsersSeeder::class,
             CompanySeeder::class,
+            EventTypeSeeder::class,
+            CustomerSeeder::class,
+            ProductSeeder::class,
+            PaymentLinkSeeder::class,
+            SubscriptionSeeder::class,
 
         ]);
     }

@@ -85,7 +85,7 @@
                         'view all invoices', 'view all customers', 'view all subscriptions',
                         'view ledger', 'view reconciliation',
                         'view risk assessments', 'manage blocklist', 'view disputes',
-                        'view providers', 'view routing rules', 'view fee schedules',
+                        'view providers', 'view routing rules', 'view fee schedules', 'view company compliance',
                     ])
                         <div class="menu-item pt-5">
                             <div class="menu-content">
@@ -108,6 +108,32 @@
                             </div>
                         @endcan
 
+                        @can('view company compliance')
+                            <div class="menu-item">
+                                <a class="menu-link {{ request()->routeIs('admin.compliance.*') ? 'active' : '' }}" href="{{ route('admin.compliance.index') }}">
+                                    <span class="menu-icon">
+                                        <i class="ki-duotone ki-shield-tick fs-2"><span class="path1"></span><span class="path2"></span></i>
+                                    </span>
+                                    <span class="menu-title">Verification Queue</span>
+                                    @php $pendingCount = \App\Models\Company\Company::where('kyb_status','pending')->count(); @endphp
+                                    @if($pendingCount)
+                                        <span class="badge badge-light-warning ms-2">${{ $pendingCount }}</span>
+                                    @endif
+                                </a>
+                            </div>
+                        @endcan
+
+                        @can('view payment links')
+                            <div class="menu-item">
+                                <a class="menu-link {{ request()->routeIs('admin.company2.*') ? 'active' : '' }}" href="{{ route('admin.company2.index') }}">
+                                    <span class="menu-icon">
+                                        <i class="ki-duotone ki-link fs-2"><span class="path1"></span><span class="path2"></span></i>
+                                    </span>
+                                    <span class="menu-title">Payment Links</span>
+                                </a>
+                            </div>
+                        @endcan
+
 
                         
                     @endcanany
@@ -123,6 +149,49 @@
                                 <span class="menu-heading fw-bold text-uppercase fs-7">Settings</span>
                             </div>
                         </div>
+
+                        {{-- ═══════════ MANAGEMENT — users/roles/permissions ═══════════ --}}
+                        @canany(['view users', 'view roles', 'view permissions'])
+                            <div class="menu-item pt-5">
+                                <div class="menu-content">
+                                    <span class="menu-heading fw-bold text-uppercase fs-7">Management</span>
+                                </div>
+                            </div>
+
+                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('users.*', 'admin.roles', 'admin.roles.*', 'admin.permissions', 'admin.permissions.*') ? 'show here' : '' }}">
+                                <span class="menu-link">
+                                    <span class="menu-icon"><i class="ki-duotone ki-abstract-28 fs-2"><span class="path1"></span><span class="path2"></span></i></span>
+                                    <span class="menu-title">User Management</span>
+                                    <span class="menu-arrow"></span>
+                                </span>
+                                <div class="menu-sub menu-sub-accordion">
+                                    @can('view users')
+                                        <div class="menu-item">
+                                            <a class="menu-link {{ request()->routeIs('users.index') ? 'active' : '' }}" href="{{ route('users.index') }}">
+                                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                <span class="menu-title">Users List</span>
+                                            </a>
+                                        </div>
+                                    @endcan
+                                    @can('view roles')
+                                        <div class="menu-item">
+                                            <a class="menu-link {{ request()->routeIs('admin.roles', 'admin.roles.*') ? 'active' : '' }}" href="{{ route('admin.roles') }}">
+                                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                <span class="menu-title">Roles</span>
+                                            </a>
+                                        </div>
+                                    @endcan
+                                    @can('view permissions')
+                                        <div class="menu-item">
+                                            <a class="menu-link {{ request()->routeIs('admin.permissions', 'admin.permissions.*') ? 'active' : '' }}" href="{{ route('admin.permissions') }}">
+                                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                <span class="menu-title">Permissions</span>
+                                            </a>
+                                        </div>
+                                    @endcan
+                                </div>
+                            </div>
+                        @endcanany
 
                         {{-- Reference Data — visible to anyone with view permission on any of the three --}}
                         @canany(['view countries', 'view currencies', 'view exchange rates'])

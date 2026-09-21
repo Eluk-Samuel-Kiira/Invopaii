@@ -19,8 +19,24 @@
         {{-- Mobile logo --}}
         <div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
             <a href="{{ route('admin.dashboard') }}" class="d-lg-none">
-                <img alt="Logo" src="{{ asset('lafab.png') }}" class="h-30px" />
+                <img alt="Logo" src="{{ asset('pay.png') }}" class="h-20px" />
             </a>
+            <span
+                style="
+                    font-family:'Archivo','Inter',system-ui,sans-serif;
+                    font-weight:700;
+                    font-size:20px;
+                    letter-spacing:-.01em;
+                    line-height:1;
+                    color:#6E3FE7;
+                    background:linear-gradient(120deg, #5A2FD8 0%, #6E3FE7 45%, #9F7BFF 100%);
+                    -webkit-background-clip:text;
+                    background-clip:text;
+                    -webkit-text-fill-color:transparent;
+                    display:inline-block;
+                    vertical-align:middle;
+                "
+            >Pay</span>
         </div>
 
         {{-- Header wrapper --}}

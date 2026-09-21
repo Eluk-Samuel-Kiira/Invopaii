@@ -41,9 +41,11 @@ class PermissionsSeeder extends Seeder
             // PLATFORM: COMPANY COMPLIANCE
             // ═══════════════════════════════════════════════════════════
             'view company documents', 'manage company documents',
-            'run verification checks',
+            'run verification checks', 'view company compliance', 
             'view risk assessments', 'manage risk rules',
             'manage blocklist', 'manage velocity limits',
+            'view company representatives',          
+            'manage company representatives', 
 
             // ═══════════════════════════════════════════════════════════
             // PLATFORM: DISPUTES
