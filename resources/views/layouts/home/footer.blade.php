@@ -4,7 +4,7 @@
       <div>
         <p class="legal">Stardena Pay is a payments technology provider. Card processing and settlement are handled by licensed partner institutions in each market. © {{ date('Y') }} Stardena.</p>
         <nav class="foot-links">
-          <a href="{{ url('/docs') }}">Documentation</a>
+          <a href="{{ route('docs.api') }}">Documentation</a>
           <a href="{{ url('/status') }}">Status</a>
           <a href="{{ url('/privacy') }}">Privacy</a>
           <a href="{{ url('/terms') }}">Terms</a>

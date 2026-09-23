@@ -76,7 +76,7 @@
                         </a>
                     </div>
 
-                     {{-- ═══════════════════════════════════════════════════════════ --}}
+                    {{-- ═══════════════════════════════════════════════════════════ --}}
                     {{-- PLATFORM SECTION — visible to platform-side roles only     --}}
                     {{-- ═══════════════════════════════════════════════════════════ --}}
 
@@ -93,49 +93,141 @@
                             </div>
                         </div>
 
-                        
-                        {{-- Companies / Merchants --}}
-                        @can('view companies')
-                            <div class="menu-item">
-                                <a class="menu-link {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}" href="{{ route('admin.companies.index') }}">
+                        {{-- ─────────── MERCHANTS ─────────── --}}
+                        @canany(['view companies', 'view company compliance', 'view payment links'])
+                            <div data-kt-menu-trigger="click"
+                                class="menu-item menu-accordion {{ request()->routeIs('admin.companies.*', 'admin.compliance.*', 'admin.company2.*') ? 'show here' : '' }}">
+                                <span class="menu-link">
                                     <span class="menu-icon">
                                         <i class="ki-duotone ki-briefcase fs-2">
                                             <span class="path1"></span><span class="path2"></span>
                                         </i>
                                     </span>
-                                    <span class="menu-title">Companies</span>
-                                </a>
-                            </div>
-                        @endcan
+                                    <span class="menu-title">Merchants</span>
+                                    <span class="menu-arrow"></span>
+                                </span>
+                                <div class="menu-sub menu-sub-accordion">
+                                    @can('view companies')
+                                        <div class="menu-item">
+                                            <a class="menu-link {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}"
+                                            href="{{ route('admin.companies.index') }}">
+                                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                <span class="menu-title">Companies</span>
+                                            </a>
+                                        </div>
+                                    @endcan
 
-                        @can('view company compliance')
-                            <div class="menu-item">
-                                <a class="menu-link {{ request()->routeIs('admin.compliance.*') ? 'active' : '' }}" href="{{ route('admin.compliance.index') }}">
+                                    @can('view company compliance')
+                                        <div class="menu-item">
+                                            <a class="menu-link {{ request()->routeIs('admin.compliance.*') ? 'active' : '' }}"
+                                            href="{{ route('admin.compliance.index') }}">
+                                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                <span class="menu-title">Verification Queue</span>
+                                                @php $pendingCount = \App\Models\Company\Company::where('kyb_status','pending')->count(); @endphp
+                                                @if($pendingCount)
+                                                    <span class="badge badge-light-warning ms-2">{{ $pendingCount }}</span>
+                                                @endif
+                                            </a>
+                                        </div>
+                                    @endcan
+
+                                    @can('view payment links')
+                                        <div class="menu-item">
+                                            <a class="menu-link {{ request()->routeIs('admin.company2.*') ? 'active' : '' }}"
+                                            href="{{ route('admin.company2.index') }}">
+                                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                <span class="menu-title">Payment Links</span>
+                                            </a>
+                                        </div>
+                                    @endcan
+                                </div>
+                            </div>
+                        @endcanany
+
+                        {{-- ─────────── PAYMENTS ─────────── --}}
+                        @canany(['view payments', 'view webhook events'])
+                            <div data-kt-menu-trigger="click"
+                                class="menu-item menu-accordion {{ request()->routeIs('admin.payments.*', 'admin.webhook-events.*') ? 'show here' : '' }}">
+                                <span class="menu-link">
                                     <span class="menu-icon">
-                                        <i class="ki-duotone ki-shield-tick fs-2"><span class="path1"></span><span class="path2"></span></i>
+                                        <i class="ki-duotone ki-dollar fs-2">
+                                            <span class="path1"></span><span class="path2"></span>
+                                        </i>
                                     </span>
-                                    <span class="menu-title">Verification Queue</span>
-                                    @php $pendingCount = \App\Models\Company\Company::where('kyb_status','pending')->count(); @endphp
-                                    @if($pendingCount)
-                                        <span class="badge badge-light-warning ms-2">${{ $pendingCount }}</span>
-                                    @endif
-                                </a>
-                            </div>
-                        @endcan
+                                    <span class="menu-title">Payments</span>
+                                    <span class="menu-arrow"></span>
+                                </span>
+                                <div class="menu-sub menu-sub-accordion">
+                                    @can('view payments')
+                                        <div class="menu-item">
+                                            <a class="menu-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}"
+                                            href="{{ route('admin.payments.index') }}">
+                                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                <span class="menu-title">All Payments</span>
+                                            </a>
+                                        </div>
+                                    @endcan
 
-                        @can('view payment links')
-                            <div class="menu-item">
-                                <a class="menu-link {{ request()->routeIs('admin.company2.*') ? 'active' : '' }}" href="{{ route('admin.company2.index') }}">
+                                    @can('view webhook events')
+                                        <div class="menu-item">
+                                            <a class="menu-link {{ request()->routeIs('admin.webhook-events.*') ? 'active' : '' }}"
+                                            href="{{ route('admin.webhook-events.index') }}">
+                                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                <span class="menu-title">Webhook Events</span>
+                                            </a>
+                                        </div>
+                                    @endcan
+                                </div>
+                            </div>
+                        @endcanany
+
+                        {{-- ─────────── PRICING ─────────── --}}
+                        @can('view fee schedules')
+                            <div data-kt-menu-trigger="click"
+                                class="menu-item menu-accordion {{ request()->routeIs('admin.fee-schedules.*', 'admin.applied-fees.*') ? 'show here' : '' }}">
+                                <span class="menu-link">
                                     <span class="menu-icon">
-                                        <i class="ki-duotone ki-link fs-2"><span class="path1"></span><span class="path2"></span></i>
+                                        <i class="ki-duotone ki-percentage fs-2">
+                                            <span class="path1"></span><span class="path2"></span>
+                                        </i>
                                     </span>
-                                    <span class="menu-title">Payment Links</span>
+                                    <span class="menu-title">Pricing</span>
+                                    <span class="menu-arrow"></span>
+                                </span>
+                                <div class="menu-sub menu-sub-accordion">
+                                    <div class="menu-item">
+                                        <a class="menu-link {{ request()->routeIs('admin.fee-schedules.*') ? 'active' : '' }}"
+                                        href="{{ route('admin.fee-schedules.index') }}">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-title">Fee Schedules</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item">
+                                        <a class="menu-link {{ request()->routeIs('admin.applied-fees.*') ? 'active' : '' }}"
+                                        href="{{ route('admin.applied-fees.index') }}">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-title">Applied Fees</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endcan
+
+                        {{-- ─────────── INFRASTRUCTURE ─────────── --}}
+                        @can('view providers')
+                            <div class="menu-item">
+                                <a class="menu-link {{ request()->routeIs('admin.providers.*') ? 'active' : '' }}"
+                                href="{{ route('admin.providers.index') }}">
+                                    <span class="menu-icon">
+                                        <i class="ki-duotone ki-abstract-39 fs-2">
+                                            <span class="path1"></span><span class="path2"></span>
+                                        </i>
+                                    </span>
+                                    <span class="menu-title">Providers</span>
                                 </a>
                             </div>
                         @endcan
 
-
-                        
                     @endcanany
 
 

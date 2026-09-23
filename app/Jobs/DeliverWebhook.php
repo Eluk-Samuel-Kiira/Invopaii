@@ -14,7 +14,7 @@ class DeliverWebhook implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 1;  // we control retry ourselves via next_retry_at
+    public int $tries = 1; // We manage retries via next_retry_at
 
     public function __construct(public WebhookDelivery $delivery) {}
 
@@ -28,12 +28,12 @@ class DeliverWebhook implements ShouldQueue
         $event = $delivery->event;
         $attempt = $delivery->attempt + 1;
 
-        $delivery->update([
-            'status' => 'delivering',
-            'attempt' => $attempt,
-        ]);
+        $delivery->update(['status' => 'delivering', 'attempt' => $attempt]);
 
+        // Build the payload
         $body = json_encode($event->toWebhookPayload(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        // Sign it
         $timestamp = time();
         $signature = $endpoint->signPayload($body, $timestamp);
 
@@ -98,36 +98,56 @@ class DeliverWebhook implements ShouldQueue
             if ($event->pending_webhooks > 0) {
                 $event->decrement('pending_webhooks');
             }
-        } else {
-            $isFinal = $attempt >= ($endpoint->max_attempts ?? 8);
-            $nextRetry = $isFinal ? null : now()->addSeconds(WebhookDelivery::retryDelaySeconds($attempt + 1));
 
-            $delivery->update([
-                'status' => $isFinal ? 'abandoned' : 'failed',
-                'response_code' => $responseCode,
-                'response_body' => $responseBody,
-                'response_headers' => $responseHeaders,
-                'duration_ms' => $durationMs,
-                'error_class' => $errorClass,
-                'error_message' => $errorMessage,
-                'next_retry_at' => $nextRetry,
-            ]);
-
-            $endpoint->increment('consecutive_failures');
-            $endpoint->update(['last_failure_at' => now()]);
-
-            // Auto-disable after N consecutive failures
-            if ($endpoint->consecutive_failures >= 20) {
-                $endpoint->update([
-                    'status' => 'auto_disabled',
-                    'disabled_at' => now(),
-                    'disabled_reason' => 'Auto-disabled after 20 consecutive failures.',
-                ]);
-            }
-
-            if ($nextRetry) {
-                self::dispatch($delivery)->delay($nextRetry);
-            }
+            return;
         }
+
+        // Failed — decide retry or abandon
+        $maxAttempts = $endpoint->max_attempts ?? 8;
+        $isFinal = $attempt >= $maxAttempts;
+        $nextRetry = $isFinal ? null : now()->addSeconds(self::retryDelay($attempt + 1));
+
+        $delivery->update([
+            'status' => $isFinal ? 'abandoned' : 'failed',
+            'response_code' => $responseCode,
+            'response_body' => $responseBody,
+            'response_headers' => $responseHeaders,
+            'duration_ms' => $durationMs,
+            'error_class' => $errorClass,
+            'error_message' => $errorMessage,
+            'next_retry_at' => $nextRetry,
+        ]);
+
+        $endpoint->increment('consecutive_failures');
+        $endpoint->update(['last_failure_at' => now()]);
+
+        // Auto-disable after 20 consecutive failures
+        if ($endpoint->consecutive_failures >= 20) {
+            $endpoint->update([
+                'status' => 'auto_disabled',
+                'disabled_at' => now(),
+                'disabled_reason' => 'Auto-disabled after 20 consecutive failures.',
+            ]);
+        }
+
+        if ($nextRetry) {
+            self::dispatch($delivery)->delay($nextRetry);
+        }
+    }
+
+    /**
+     * Exponential backoff: 30s, 5m, 30m, 2h, 6h, 12h, 24h, 24h...
+     */
+    protected static function retryDelay(int $attempt): int
+    {
+        return match (true) {
+            $attempt <= 1 => 30,
+            $attempt === 2 => 300,
+            $attempt === 3 => 1800,
+            $attempt === 4 => 7200,
+            $attempt === 5 => 21600,
+            $attempt === 6 => 43200,
+            default => 86400,
+        };
     }
 }

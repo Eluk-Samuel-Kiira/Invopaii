@@ -22,3 +22,31 @@ Schedule::call(function () {
 
 use App\Jobs\SubscriptionBillingRunJob;
 Schedule::job(new SubscriptionBillingRunJob)->hourly()->name('subscription-billing');
+
+
+
+Schedule::call(function () {
+    $accounts = \App\Models\Payment\LedgerAccount::where('category', 'merchant_payable')->get();
+
+    foreach ($accounts as $account) {
+        $computed = \App\Models\Payment\LedgerEntry::where('ledger_account_id', $account->id)
+            ->selectRaw("SUM(CASE WHEN direction = 'credit' THEN amount ELSE -amount END) as net")
+            ->value('net') ?? 0;
+
+        if ((int) $computed !== (int) $account->balance) {
+            \Log::error('Ledger drift detected', [
+                'account_id' => $account->id,
+                'code' => $account->code,
+                'cached' => $account->balance,
+                'computed' => $computed,
+                'drift' => $account->balance - $computed,
+            ]);
+        }
+    }
+})->dailyAt('02:00')->name('ledger-reconciliation');
+
+
+use App\Jobs\MaturePendingBalancesJob;
+
+Schedule::job(new MaturePendingBalancesJob)->hourly()->name('mature-pending-balances');
+

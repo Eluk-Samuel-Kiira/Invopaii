@@ -154,4 +154,10 @@ class ApiKey extends Model
     {
         return self::where('key_hash', hash('sha256', $plaintext))->first();
     }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(\App\Models\Platform\AuditLog::class);
+    }
+    
 }

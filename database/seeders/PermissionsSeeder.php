@@ -22,7 +22,7 @@ class PermissionsSeeder extends Seeder
             // ═══════════════════════════════════════════════════════════
             // PLATFORM: PAYMENT PROVIDERS
             // ═══════════════════════════════════════════════════════════
-            'view providers', 'create providers', 'edit providers', 'delete providers',
+            'view providers', 'manage providers', 'create providers', 'edit providers', 'delete providers',
             'manage provider credentials',           // rotate secrets — super_admin only
             'view routing rules', 'manage routing rules',
 
@@ -142,8 +142,7 @@ class PermissionsSeeder extends Seeder
             // ═══════════════════════════════════════════════════════════
             // MERCHANT: PAYMENTS
             // ═══════════════════════════════════════════════════════════
-            'view payments', 'create payments',
-            'capture payments', 'void payments',
+            'view payments', 'create payments', 'edit payments', 'capture payments', 'void payments',
             'view payment attempts',
 
             // ═══════════════════════════════════════════════════════════

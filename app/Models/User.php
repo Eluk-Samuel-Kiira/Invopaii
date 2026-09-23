@@ -199,4 +199,31 @@ class User extends Authenticatable
     {
         return $this->companies()->where('companies.id', $companyId)->exists();
     }
+
+    public function platformNotifications()
+    {
+        return $this->morphMany(\App\Models\Platform\PlatformNotification::class, 'notifiable');
+    }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(\App\Models\Platform\AuditLog::class);
+    }
+
+    public function notificationPreferences()
+    {
+        return $this->hasMany(\App\Models\Platform\NotificationPreference::class);
+    }
+
+    public function exports()
+    {
+        return $this->hasMany(\App\Models\Platform\Export::class, 'requested_by_id');
+    }
+
+    public function announcementDismissals()
+    {
+        return $this->hasMany(\App\Models\Platform\AnnouncementDismissal::class);
+    }
+
+
 }

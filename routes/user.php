@@ -381,3 +381,63 @@ Route::prefix('admin/company2/subscriptions')
     ->group(function () {
         Route::delete('/{id}', [SubscriptionController::class, 'deleteSubscription'])->whereNumber('id')->name('admin.company2.subscriptions.delete');
     });
+
+
+
+use App\Http\Controllers\Payment\ProviderController;
+
+/*
+|--------------------------------------------------------------------------
+| Admin — Payment Providers & Routing
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('admin/providers')
+    ->middleware(['auth', 'permission:view providers'])
+    ->group(function () {
+        Route::get('/',        [ProviderController::class, 'index'])->name('admin.providers.index');
+        Route::get('/data',    [ProviderController::class, 'getProviders'])->name('admin.providers.data');
+        Route::get('/stats',   [ProviderController::class, 'getStats'])->name('admin.providers.stats');
+        Route::get('/form-options', [ProviderController::class, 'getFormOptions'])->name('admin.providers.form-options');
+        Route::get('/{id}',    [ProviderController::class, 'getProvider'])->whereNumber('id')->name('admin.providers.show');
+        Route::get('/{providerId}/credentials', [ProviderController::class, 'getCredentials'])->whereNumber('providerId')->name('admin.providers.credentials.index');
+    });
+
+Route::prefix('admin/providers')
+    ->middleware(['auth', 'permission:manage providers'])
+    ->group(function () {
+        Route::post('/',                    [ProviderController::class, 'storeProvider'])->name('admin.providers.store');
+        Route::put('/{id}',                 [ProviderController::class, 'updateProvider'])->whereNumber('id')->name('admin.providers.update');
+        Route::patch('/{id}/toggle',        [ProviderController::class, 'toggleProvider'])->whereNumber('id')->name('admin.providers.toggle');
+
+        Route::post('/{providerId}/credentials', [ProviderController::class, 'storeCredential'])->whereNumber('providerId')->name('admin.providers.credentials.store');
+        Route::put('/credentials/{id}',          [ProviderController::class, 'updateCredential'])->whereNumber('id')->name('admin.providers.credentials.update');
+        Route::delete('/credentials/{id}',       [ProviderController::class, 'deleteCredential'])->whereNumber('id')->name('admin.providers.credentials.delete');
+    });
+
+Route::prefix('admin/providers')
+    ->middleware(['auth', 'permission:delete providers'])
+    ->group(function () {
+        Route::delete('/{id}', [ProviderController::class, 'deleteProvider'])->whereNumber('id')->name('admin.providers.delete');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Admin — Routing Rules
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('admin/routing-rules')
+    ->middleware(['auth', 'permission:view routing rules'])
+    ->group(function () {
+        Route::get('/',     [ProviderController::class, 'getRoutingRules'])->name('admin.routing-rules.index');
+    });
+
+Route::prefix('admin/routing-rules')
+    ->middleware(['auth', 'permission:manage routing rules'])
+    ->group(function () {
+        Route::post('/',             [ProviderController::class, 'storeRoutingRule'])->name('admin.routing-rules.store');
+        Route::put('/{id}',          [ProviderController::class, 'updateRoutingRule'])->whereNumber('id')->name('admin.routing-rules.update');
+        Route::patch('/{id}/toggle', [ProviderController::class, 'toggleRoutingRule'])->whereNumber('id')->name('admin.routing-rules.toggle');
+        Route::delete('/{id}',       [ProviderController::class, 'deleteRoutingRule'])->whereNumber('id')->name('admin.routing-rules.delete');
+    });
