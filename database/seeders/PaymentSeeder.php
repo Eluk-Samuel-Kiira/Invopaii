@@ -28,75 +28,26 @@ class PaymentSeeder extends Seeder
         }
 
         $templates = [
-            [
-                'status' => 'succeeded',
-                'amount' => 75000,
-                'method' => 'mobile_money',
-                'reference' => 'DEMO-001',
-                'attempts' => 1,
-                'attempt_status' => 'succeeded',
-            ],
-            [
-                'status' => 'succeeded',
-                'amount' => 250000,
-                'method' => 'card',
-                'reference' => 'DEMO-002',
-                'attempts' => 1,
-                'attempt_status' => 'succeeded',
-            ],
-            [
-                'status' => 'failed',
-                'amount' => 12000,
-                'method' => 'mobile_money',
-                'reference' => 'fail-001',
-                'attempts' => 1,
-                'attempt_status' => 'failed',
-            ],
-            [
-                'status' => 'processing',
-                'amount' => 50000,
-                'method' => 'mobile_money',
-                'reference' => 'DEMO-004',
-                'attempts' => 1,
-                'attempt_status' => 'pending',
-            ],
-            [
-                'status' => 'requires_action',
-                'amount' => 90000,
-                'method' => 'mobile_money',
-                'reference' => 'DEMO-005',
-                'attempts' => 1,
-                'attempt_status' => 'pending',
-                'next_action' => ['type' => 'wait_for_push', 'message' => 'Enter PIN on phone'],
-            ],
-            [
-                'status' => 'failed',
-                'amount' => 30000,
-                'method' => 'mobile_money',
-                'reference' => 'DEMO-006',
-                'attempts' => 2,
-                'attempt_status' => 'failed',
-            ],
-            [
-                'status' => 'cancelled',
-                'amount' => 15000,
-                'method' => 'mobile_money',
-                'reference' => 'DEMO-007',
-                'attempts' => 1,
-                'attempt_status' => 'failed',
-            ],
+            ['status' => 'succeeded', 'amount' => 75000,  'method' => 'mobile_money', 'reference' => 'DEMO-001', 'attempts' => 1, 'attempt_status' => 'succeeded'],
+            ['status' => 'succeeded', 'amount' => 250000, 'method' => 'card',         'reference' => 'DEMO-002', 'attempts' => 1, 'attempt_status' => 'succeeded'],
+            ['status' => 'failed',    'amount' => 12000,  'method' => 'mobile_money', 'reference' => 'fail-001', 'attempts' => 1, 'attempt_status' => 'failed'],
+            ['status' => 'processing','amount' => 50000,  'method' => 'mobile_money', 'reference' => 'DEMO-004', 'attempts' => 1, 'attempt_status' => 'pending'],
+            ['status' => 'requires_action', 'amount' => 90000, 'method' => 'mobile_money', 'reference' => 'DEMO-005', 'attempts' => 1, 'attempt_status' => 'pending', 'next_action' => ['type' => 'wait_for_push', 'message' => 'Enter PIN on phone']],
+            ['status' => 'failed',    'amount' => 30000,  'method' => 'mobile_money', 'reference' => 'DEMO-006', 'attempts' => 2, 'attempt_status' => 'failed'],
+            ['status' => 'cancelled', 'amount' => 15000,  'method' => 'mobile_money', 'reference' => 'DEMO-007', 'attempts' => 1, 'attempt_status' => 'failed'],
         ];
 
         $count = 0;
 
         foreach ($templates as $i => $tpl) {
-            $existing = $company->payments()->where('reference', $tpl['reference'])->exists();
-            if ($existing) continue;
+            if ($company->payments()->where('reference', $tpl['reference'])->exists()) continue;
 
             $mode = $i % 3 === 0 ? 'test' : 'live';
             $createdAt = now()->subDays(rand(1, 30));
 
             $payment = $company->payments()->create([
+                'uuid' => (string) Str::uuid(),
+                'public_id' => 'pay_' . Str::lower(Str::random(24)),
                 'mode' => $mode,
                 'source' => 'dashboard',
                 'customer_id' => $customer?->id,
@@ -131,6 +82,7 @@ class PaymentSeeder extends Seeder
                 $attemptStatus = $isLast ? $tpl['attempt_status'] : 'failed';
 
                 PaymentAttempt::create([
+                    'uuid' => (string) Str::uuid(),
                     'payment_id' => $payment->id,
                     'company_id' => $company->id,
                     'payment_provider_id' => $stubProvider->id,

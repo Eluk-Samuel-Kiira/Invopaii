@@ -39,8 +39,12 @@ class Customer extends Model
     protected static function booted(): void
     {
         static::creating(function (Customer $c) {
-            $c->uuid ??= (string) Str::uuid();
-            $c->public_id ??= 'cus_' . Str::lower(Str::random(24));
+            if (blank($c->uuid)) {
+                $c->uuid = (string) Str::uuid();
+            }
+            if (blank($c->public_id)) {
+                $c->public_id = 'cus_' . Str::lower(Str::random(24));
+            }
         });
     }
 

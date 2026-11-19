@@ -42,8 +42,12 @@ class PaymentMethod extends Model
     protected static function booted(): void
     {
         static::creating(function (PaymentMethod $pm) {
-            $pm->uuid ??= (string) Str::uuid();
-            $pm->public_id ??= 'pm_' . Str::lower(Str::random(24));
+            if (blank($pm->uuid)) {
+                $pm->uuid = (string) Str::uuid();
+            }
+            if (blank($pm->public_id)) {
+                $pm->public_id = 'pm_' . Str::lower(Str::random(24));
+            }
         });
 
         static::saving(function (PaymentMethod $pm) {

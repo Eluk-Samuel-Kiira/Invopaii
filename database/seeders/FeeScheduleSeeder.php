@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Payment\FeeSchedule;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class FeeScheduleSeeder extends Seeder
 {
@@ -48,21 +49,19 @@ class FeeScheduleSeeder extends Seeder
         ];
 
         foreach ($schedules as $data) {
-            $schedule = FeeSchedule::updateOrCreate(
-                ['code' => $data['code']],
-                [
-                    'name' => $data['name'],
-                    'description' => $data['description'],
-                    'is_default' => $data['is_default'],
-                    'is_active' => $data['is_active'],
-                ]
-            );
+            $schedule = FeeSchedule::firstOrNew(['code' => $data['code']]);
 
-            // Replace rules on re-seed
-            $schedule->rules()->delete();
-            foreach ($data['rules'] as $rule) {
-                $schedule->rules()->create($rule);
+            // Ensure uuid/public_id exist on both insert and update paths
+            if (!$schedule->exists) {
+                $schedule->uuid = (string) Str::uuid();
             }
+
+            $schedule->fill([
+                'name' => $data['name'],
+                'description' => $data['description'],
+                'is_default' => $data['is_default'],
+                'is_active' => $data['is_active'],
+            ])->save();
         }
 
         $this->command->info('✓ Seeded ' . count($schedules) . ' fee schedules.');

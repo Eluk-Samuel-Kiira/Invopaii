@@ -17,14 +17,17 @@ class CustomerAddress extends Model
 
     protected static function booted(): void
     {
-        static::creating(fn ($a) => $a->uuid ??= (string) Str::uuid());
+        static::creating(function (CustomerAddress $a) {
+            if (blank($a->uuid)) {
+                $a->uuid = (string) Str::uuid();
+            }
+        });
 
-        // Enforce single default per (customer, type)
         static::saving(function (CustomerAddress $a) {
             if ($a->is_default && $a->isDirty('is_default')) {
                 static::where('customer_id', $a->customer_id)
                     ->where('type', $a->type)
-                    ->where('id', '!=', $a->id ?? 0)
+                    ->when($a->exists, fn ($q) => $q->where('id', '!=', $a->id))
                     ->update(['is_default' => false]);
             }
         });
