@@ -7,7 +7,7 @@
 
     <nav class="nav-links" aria-label="Primary">
       <a href="{{ url('/#methods') }}">Payment methods</a>
-      <a href="{{ url('/docs') }}">
+      <a href="{{ route('docs.api') }}">
         <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="8 6 2 12 8 18"/>
           <polyline points="16 6 22 12 16 18"/>
@@ -29,7 +29,7 @@
 
   <nav class="mobile-menu" id="mobile-menu" data-open="false" aria-label="Mobile">
     <a href="{{ url('/#methods') }}">Payment methods</a>
-    <a href="{{ url('/docs') }}">Developers</a>
+    <a href="{{ route('docs.api') }}">Developers</a>
     <a href="{{ url('/#pricing') }}">Pricing</a>
     <hr>
     <a class="btn btn--light" href="{{ url('/login') }}" target="_blank">Sign in</a>

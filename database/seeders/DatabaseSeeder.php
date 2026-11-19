@@ -31,6 +31,9 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             PaymentLinkSeeder::class,
             SubscriptionSeeder::class,
+            PaymentProviderSeeder::class,
+            PaymentSeeder::class,
+            FeeScheduleSeeder::class,
 
         ]);
     }

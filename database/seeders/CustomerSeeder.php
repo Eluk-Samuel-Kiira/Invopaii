@@ -7,6 +7,7 @@ use App\Models\Customer\Customer;
 use App\Models\Customer\CustomerAddress;
 use App\Models\Payment\PaymentMethod;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class CustomerSeeder extends Seeder
 {
@@ -215,6 +216,8 @@ class CustomerSeeder extends Seeder
                 }
 
                 $customer = $company->customers()->create([
+                    'uuid' => (string) Str::uuid(),
+                    'public_id' => 'cus_' . Str::lower(Str::random(24)),
                     'mode' => $template['mode'],
                     'name' => $template['name'],
                     'email' => $template['email'] ?? null,
@@ -232,20 +235,20 @@ class CustomerSeeder extends Seeder
                 ]);
 
                 // Address
-                if (!empty($template['address'])) {
-                    $address = $customer->addresses()->create(array_merge(
-                        ['type' => 'billing'],
-                        $template['address']
-                    ));
-                    if (!empty($template['address']['is_default'])) {
-                        $customer->update(['default_address_id' => $address->id]);
-                    }
-                }
+                $address = $customer->addresses()->create(array_merge(
+                    [
+                        'uuid' => (string) Str::uuid(),
+                        'type' => 'billing',
+                    ],
+                    $template['address']
+                ));
 
                 // Card
                 if (!empty($template['card'])) {
                     $pm = $customer->paymentMethods()->create(array_merge(
                         [
+                            'uuid' => (string) Str::uuid(),
+                            'public_id' => 'pm_' . Str::lower(Str::random(24)),
                             'company_id' => $company->id,
                             'mode' => $template['mode'],
                             'type' => 'card',
@@ -265,6 +268,8 @@ class CustomerSeeder extends Seeder
                 if (!empty($template['mobile'])) {
                     $pm = $customer->paymentMethods()->create(array_merge(
                         [
+                            'uuid' => (string) Str::uuid(),
+                            'public_id' => 'pm_' . Str::lower(Str::random(24)),
                             'company_id' => $company->id,
                             'mode' => $template['mode'],
                             'type' => 'mobile_money',

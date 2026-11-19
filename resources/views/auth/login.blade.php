@@ -13,12 +13,28 @@
         <div class="alert alert-success mb-6">{{ session('status') }}</div>
     @endif
 
-    <form class="form w-100" method="POST" action="{{ route('login.post') }}" novalidate>        
+    {{-- Quick login keys (dev/trial only) --}}
+    @if (app()->environment(['local', 'testing']) || config('app.debug'))
+        <div class="mb-8">
+            <div class="text-muted fs-7 fw-semibold mb-3">Quick sign-in (trial accounts)</div>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button"
+                    class="btn btn-sm btn-light-primary quick-login"
+                    data-email="superadmin@lafab.com"
+                    data-password="Admin@1234"
+                    data-submit="1">
+                    Super Admin
+                </button>
+            </div>
+        </div>
+    @endif
+
+    <form class="form w-100" method="POST" action="{{ route('login.post') }}" id="loginForm" novalidate>
         @csrf
 
         {{-- Email --}}
         <div class="fv-row mb-8">
-            <input type="email" name="email" placeholder="Email"
+            <input type="email" name="email" id="login_email" placeholder="Email"
                 value="{{ old('email') }}"
                 class="form-control bg-transparent @error('email') is-invalid @enderror"
                 autocomplete="username" autofocus required />
@@ -31,7 +47,7 @@
 
         {{-- Password --}}
         <div class="fv-row mb-3">
-            <input type="password" name="password" placeholder="Password"
+            <input type="password" name="password" id="login_password" placeholder="Password"
                 class="form-control bg-transparent @error('password') is-invalid @enderror"
                 autocomplete="current-password" required />
             @error('password')
@@ -54,26 +70,34 @@
 
         {{-- Submit --}}
         <div class="d-grid mb-10">
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" id="loginSubmit">
                 <span class="indicator-label">Sign In</span>
                 <span class="indicator-progress">Please wait...
                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                 </span>
             </button>
         </div>
-
-        {{--
-        @if (Route::has('register'))
-            <div class="text-gray-500 text-center fw-semibold fs-6">
-                Not a Member yet?
-                <a href="{{ route('register') }}" class="link-primary">Sign up</a>
-            </div>
-        @endif
-        --}}
     </form>
 
 @endsection
 
 @section('scripts')
     <script src="{{ asset('assets/js/custom/authentication/sign-in/general.js') }}"></script>
+
+    <script>
+        document.querySelectorAll('.quick-login').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var email = btn.dataset.email || '';
+                var password = btn.dataset.password || '';
+                var shouldSubmit = btn.dataset.submit === '1';
+
+                document.getElementById('login_email').value = email;
+                document.getElementById('login_password').value = password;
+
+                if (shouldSubmit) {
+                    document.getElementById('loginForm').submit();
+                }
+            });
+        });
+    </script>
 @endsection

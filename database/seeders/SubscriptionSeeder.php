@@ -3,14 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\Company\Company;
-use App\Models\Payment\Subscription;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class SubscriptionSeeder extends Seeder
 {
     public function run(): void
     {
-        $companies = Company::query()->with('customers')->limit(3)->get();
+        $companies = Company::query()->limit(3)->get();
 
         if ($companies->isEmpty()) {
             $this->command->warn('No companies — skipping subscription seeder.');
@@ -37,6 +37,8 @@ class SubscriptionSeeder extends Seeder
                 $isTrialing = ($index === 1);
 
                 $sub = $company->subscriptions()->create([
+                    'uuid' => (string) Str::uuid(),
+                    'public_id' => 'sub_' . Str::lower(Str::random(24)),
                     'customer_id' => $customer->id,
                     'mode' => $mode,
                     'description' => $isTrialing ? 'Monthly hosting — trial' : 'Monthly hosting plan',
@@ -54,6 +56,7 @@ class SubscriptionSeeder extends Seeder
                 ]);
 
                 $sub->items()->create([
+                    'uuid' => (string) Str::uuid(),
                     'name' => 'Monthly Hosting',
                     'unit_amount' => 50000,
                     'currency' => $currency,

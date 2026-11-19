@@ -28,7 +28,19 @@ Route::middleware('auth')->group(function () {
 });
 
 
+Route::prefix('docs')->name('docs.')->group(function () {
+    Route::get('/', fn () => view('docs.index'))->name('index');
+    Route::get('/api', fn () => view('docs.api'))->name('api');
+    Route::get('/webhooks', fn () => view('docs.webhooks'))->name('webhooks');
+
+    // Architecture — internal reference
+    Route::get('/architecture/webhook-delivery', fn () => view('docs.architecture.webhook-delivery'))
+        ->name('architecture.webhook-delivery');
+});
+
+
 
 require __DIR__.'/auth.php';
 require __DIR__.'/user.php';
 require __DIR__.'/reference.php';
+require __DIR__.'/payment.php';

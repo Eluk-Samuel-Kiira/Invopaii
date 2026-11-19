@@ -82,10 +82,6 @@ class Company extends Model
         return $this->hasMany(CompanyInvitation::class);
     }
 
-    public function feeSchedule()
-    {
-        return $this->belongsTo(FeeSchedule::class);
-    }
 
     /* ---------- Scopes ---------- */
 
@@ -265,4 +261,110 @@ class Company extends Model
     {
         return $this->hasMany(\App\Models\Payment\Subscription::class);
     }
+
+    public function payments()
+    {
+        return $this->hasMany(\App\Models\Payment\Payment::class);
+    }
+
+    public function paymentAttempts()
+    {
+        return $this->hasMany(\App\Models\Payment\PaymentAttempt::class);
+    }
+
+    public function refunds()
+    {
+        return $this->hasMany(\App\Models\Payment\Refund::class);
+    }
+
+    public function disputes()
+    {
+        return $this->hasMany(\App\Models\Payment\Dispute::class);
+    }
+
+    public function feeSchedule()
+    {
+        return $this->belongsTo(\App\Models\Payment\FeeSchedule::class, 'fee_schedule_id');
+    }
+
+    public function appliedFees()
+    {
+        return $this->hasMany(\App\Models\Payment\AppliedFee::class);
+    }
+
+    public function balances()
+    {
+        return $this->hasMany(\App\Models\Payment\Balance::class);
+    }
+
+    public function balanceTransactions()
+    {
+        return $this->hasMany(\App\Models\Payment\BalanceTransaction::class);
+    }
+
+    public function balanceAdjustments()
+    {
+        return $this->hasMany(\App\Models\Payment\BalanceAdjustment::class);
+    }
+
+    public function ledgerAccounts()
+    {
+        return $this->hasMany(\App\Models\Payment\LedgerAccount::class);
+    }
+
+    public function ledgerTransactions()
+    {
+        return $this->hasMany(\App\Models\Payment\LedgerTransaction::class);
+    }
+
+    public function payouts()
+    {
+        return $this->hasMany(\App\Models\Payment\Payout::class);
+    }
+
+    public function riskRules()
+    {
+        return $this->hasMany(\App\Models\Payment\RiskRule::class);
+    }
+
+    public function riskAssessments()
+    {
+        return $this->hasMany(\App\Models\Payment\RiskAssessment::class);
+    }
+
+    public function blocklistEntries()
+    {
+        return $this->hasMany(\App\Models\Payment\BlocklistEntry::class);
+    }
+
+    public function velocityLimits()
+    {
+        return $this->hasMany(\App\Models\Payment\VelocityLimit::class);
+    }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(\App\Models\Platform\AuditLog::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(\App\Models\Platform\PlatformNotification::class);
+    }
+
+    public function notificationPreferences()
+    {
+        return $this->hasMany(\App\Models\Platform\NotificationPreference::class);
+    }
+
+    public function exports()
+    {
+        return $this->hasMany(\App\Models\Platform\Export::class);
+    }
+
+    public function settings()
+    {
+        return $this->hasMany(\App\Models\Platform\CompanySetting::class);
+    }
+
 }

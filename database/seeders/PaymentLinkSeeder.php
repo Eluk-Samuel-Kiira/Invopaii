@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Company\Company;
 use App\Models\Payment\PaymentLink;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class PaymentLinkSeeder extends Seeder
 {
@@ -58,8 +59,13 @@ class PaymentLinkSeeder extends Seeder
             foreach ($templates as $tpl) {
                 if ($company->paymentLinks()->where('title', $tpl['title'])->exists()) continue;
 
+                $mode = $company->live_mode_enabled ? 'live' : 'test';
+
                 $company->paymentLinks()->create(array_merge($tpl, [
-                    'mode' => $company->live_mode_enabled ? 'live' : 'test',
+                    'uuid' => (string) Str::uuid(),
+                    'public_id' => 'plink_' . Str::lower(Str::random(24)),
+                    'slug' => $this->uniqueSlug($mode, $tpl['title']),
+                    'mode' => $mode,
                     'created_by_id' => $company->owner_id,
                     'after_completion' => 'hosted_confirmation',
                     'send_receipt' => true,
@@ -72,5 +78,23 @@ class PaymentLinkSeeder extends Seeder
         }
 
         $this->command->info("✓ Seeded {$count} payment links.");
+    }
+
+    /**
+     * Slug must be unique per (mode) GLOBALLY — the DB index is
+     * payment_links_mode_slug_unique on (mode, slug), not per company.
+     */
+    private function uniqueSlug(string $mode, string $title): string
+    {
+        $base = Str::slug($title) ?: 'link';
+        $slug = $base;
+        $i = 2;
+
+        while (PaymentLink::withTrashed()->where('mode', $mode)->where('slug', $slug)->exists()) {
+            $slug = "{$base}-{$i}";
+            $i++;
+        }
+
+        return $slug;
     }
 }

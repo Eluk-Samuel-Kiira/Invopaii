@@ -20,11 +20,19 @@ class EventDispatcher
         ?array $previousAttributes = null,
         string $origin = 'api',
         ?int $triggeredById = null,
-        ?string $apiVersion = '2025-01-01'
+        ?string $apiVersion = '2025-01-01',
+        ?string $mode = null
     ): Event {
+        // Resolve the effective mode: explicit param wins, then the resource's
+        // own mode, then the company's current mode, then 'test' as a fallback.
+        $effectiveMode = $mode
+            ?? $resource?->mode
+            ?? $company->current_mode
+            ?? 'test';
+
         $event = Event::create([
             'company_id' => $company->id,
-            'mode' => $company->current_mode ?? 'test',
+            'mode' => $effectiveMode,
             'type' => $type,
             'resource_type' => $resource ? get_class($resource) : null,
             'resource_id' => $resource?->id,
@@ -44,10 +52,11 @@ class EventDispatcher
             ->get();
 
         $queued = 0;
+
         foreach ($endpoints as $endpoint) {
             if (!$endpoint->isSubscribedTo($type)) continue;
 
-            WebhookDelivery::create([
+            $delivery = WebhookDelivery::create([
                 'webhook_endpoint_id' => $endpoint->id,
                 'event_id' => $event->id,
                 'company_id' => $company->id,
@@ -58,6 +67,8 @@ class EventDispatcher
                 'scheduled_for' => now(),
                 'next_retry_at' => now(),
             ]);
+
+            \App\Jobs\DeliverWebhook::dispatch($delivery);
             $queued++;
         }
 
